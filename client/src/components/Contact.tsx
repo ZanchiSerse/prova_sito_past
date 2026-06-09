@@ -62,7 +62,8 @@ export default function Contact() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (_data: ContactFormData) => {
+    // TODO: sostituire questa simulazione con submit verso API quando disponibile.
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSubmitted(true);
     reset();

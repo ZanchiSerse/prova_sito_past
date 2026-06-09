@@ -82,14 +82,13 @@ export default function About() {
               <div className="mt-6 space-y-5">
                 {timelineEvents.map((event, index) => (
                   <div key={event.title} className="relative pl-8">
-                    <div className="absolute left-2 top-2 h-full w-px bg-border" />
+                    {index < timelineEvents.length - 1 && (
+                      <div className="absolute left-2 top-2 h-full w-px bg-border" />
+                    )}
                     <div className="absolute left-0 top-1.5 h-4 w-4 rounded-full border-4 border-background bg-accent" />
                     <p className="font-accent text-xs text-accent">{event.year}</p>
                     <h4 className="mt-1 font-display text-xl text-foreground">{event.title}</h4>
                     <p className="mt-1 text-sm text-muted-foreground">{event.description}</p>
-                    {index === timelineEvents.length - 1 && (
-                      <div className="absolute left-2 top-2 h-[calc(100%-1.5rem)] w-px bg-border" />
-                    )}
                   </div>
                 ))}
               </div>

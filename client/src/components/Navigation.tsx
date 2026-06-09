@@ -10,6 +10,8 @@ const navItems = [
   { label: 'Contatti', id: 'contact' },
 ];
 
+const SECTION_OBSERVER_ROOT_MARGIN = '-40% 0px -45% 0px';
+
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -45,7 +47,7 @@ export default function Navigation() {
         }
       },
       {
-        rootMargin: '-40% 0px -45% 0px',
+        rootMargin: SECTION_OBSERVER_ROOT_MARGIN,
         threshold: [0.2, 0.35, 0.5, 0.7],
       },
     );

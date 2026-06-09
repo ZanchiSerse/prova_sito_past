@@ -254,7 +254,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  opacity: 0.8;
+  background: color-mix(in oklab, var(--accent) 82%, black);
 }
 
 @media (prefers-reduced-motion: no-preference) {

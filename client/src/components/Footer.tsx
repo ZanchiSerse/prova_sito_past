@@ -21,6 +21,8 @@ const socialLinks = [
   },
 ];
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -36,7 +38,7 @@ export default function Footer() {
   const handleNewsletterSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newsletterEmail);
+    const validEmail = EMAIL_PATTERN.test(newsletterEmail);
 
     if (!validEmail) {
       setNewsletterMessage('Inserisci una email valida.');

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 const galleryImages = [
@@ -63,32 +63,41 @@ export default function Gallery() {
     [activeCategory],
   );
 
-  const goToPrev = () => {
+  const goToPrev = useCallback(() => {
     setSelectedIndex((prev) => {
       if (prev === null) return prev;
       return prev === 0 ? filteredImages.length - 1 : prev - 1;
     });
-  };
+  }, [filteredImages.length]);
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     setSelectedIndex((prev) => {
       if (prev === null) return prev;
       return prev === filteredImages.length - 1 ? 0 : prev + 1;
     });
-  };
+  }, [filteredImages.length]);
 
   useEffect(() => {
     if (selectedIndex === null) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelectedIndex(null);
-      if (event.key === 'ArrowLeft') goToPrev();
-      if (event.key === 'ArrowRight') goToNext();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSelectedIndex(null);
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goToPrev();
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goToNext();
+      }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedIndex, filteredImages.length]);
+  }, [selectedIndex, goToPrev, goToNext]);
 
   useEffect(() => {
     setSelectedIndex(null);
@@ -166,6 +175,8 @@ export default function Gallery() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 bg-black/85 p-4 backdrop-blur-sm"
+              role="dialog"
+              aria-modal="true"
             >
               <div className="mx-auto flex h-full max-w-6xl items-center justify-center">
                 <button
@@ -190,6 +201,7 @@ export default function Gallery() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
                   className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-white/20"
+                  aria-label={`Immagine ${selectedIndex + 1} di ${filteredImages.length}`}
                 >
                   <img
                     src={filteredImages[selectedIndex].src}

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 const slides = [
   {
     image: '/manus-storage/NdWcf1bYS1Q0_d756c5a1.jpg',
+    loading: 'eager' as const,
     eyebrow: 'Pasticceria Artigianale',
     title: 'Pasticceria da Cristian',
     description:
@@ -12,6 +13,7 @@ const slides = [
   },
   {
     image: '/manus-storage/RlGA09dRUQbK_f2b290e9.jpg',
+    loading: 'lazy' as const,
     eyebrow: 'Tradizione e Innovazione',
     title: 'Dolci per ogni occasione',
     description:
@@ -19,12 +21,15 @@ const slides = [
   },
   {
     image: '/manus-storage/kZHAb9DqNV5g_455734b7.jpg',
+    loading: 'lazy' as const,
     eyebrow: 'Qualità Senza Compromessi',
     title: 'Esperienza dal 1990',
     description:
       'Ogni giorno sforniamo bontà fresche che raccontano la nostra passione per il mestiere pasticcere.',
   },
 ];
+
+const SLIDE_INTERVAL_MS = 6500;
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -38,7 +43,7 @@ export default function Hero() {
   useEffect(() => {
     const timer = window.setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6500);
+    }, SLIDE_INTERVAL_MS);
 
     return () => window.clearInterval(timer);
   }, []);
@@ -62,7 +67,7 @@ export default function Hero() {
             key={slides[currentSlide].image}
             src={slides[currentSlide].image}
             alt={slides[currentSlide].title}
-            loading={currentSlide === 0 ? 'eager' : 'lazy'}
+            loading={slides[currentSlide].loading}
             className="absolute inset-0 h-full w-full scale-105 object-cover"
             initial={{ opacity: 0, scale: 1.1 }}
             animate={{ opacity: 1, scale: 1.04 }}
