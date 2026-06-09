@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { useState } from 'react';
 
 const galleryImages = [
   {
@@ -8,148 +9,224 @@ const galleryImages = [
     src: '/manus-storage/d4PFWfnec6m4_3f78bd78.jpg',
     alt: 'Torte Eleganti',
     title: 'Torte Eleganti',
+    category: 'Torte',
   },
   {
     id: 2,
     src: '/manus-storage/iFNc1ncfCogr_aa22f225.jpg',
     alt: 'Dolci Raffinati',
     title: 'Dolci Raffinati',
+    category: 'Mignon',
   },
   {
     id: 3,
     src: '/manus-storage/jON5HP5n6HjF_50147e0b.jpg',
     alt: 'Pasticceria Mignon',
     title: 'Pasticceria Mignon',
+    category: 'Mignon',
   },
   {
     id: 4,
     src: '/manus-storage/NdWcf1bYS1Q0_d756c5a1.jpg',
     alt: 'Macarons Colorati',
     title: 'Macarons Colorati',
+    category: 'Specialità',
   },
   {
     id: 5,
     src: '/manus-storage/THsaRm0JfovD_8982fb64.jpg',
     alt: 'Cupcakes Decorati',
     title: 'Cupcakes Decorati',
+    category: 'Specialità',
   },
   {
     id: 6,
     src: '/manus-storage/2Wfya3GJYAjN_9888c3f1.jpg',
     alt: 'Croissant Artigianali',
     title: 'Croissant Artigianali',
+    category: 'Colazione',
   },
-];
+] as const;
+
+const categories = ['Tutti', 'Torte', 'Mignon', 'Specialità', 'Colazione'] as const;
 
 export default function Gallery() {
-  const { ref, inView } = useInView({
-    threshold: 0.2,
-    triggerOnce: true,
-  });
+  const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
+  const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]>('Tutti');
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const filteredImages = useMemo(
+    () =>
+      activeCategory === 'Tutti'
+        ? galleryImages
+        : galleryImages.filter((image) => image.category === activeCategory),
+    [activeCategory],
+  );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  const goToPrev = useCallback(() => {
+    setSelectedIndex((prev) => {
+      if (prev === null) return prev;
+      return prev === 0 ? filteredImages.length - 1 : prev - 1;
+    });
+  }, [filteredImages.length]);
 
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5 },
-    },
-  };
+  const goToNext = useCallback(() => {
+    setSelectedIndex((prev) => {
+      if (prev === null) return prev;
+      return prev === filteredImages.length - 1 ? 0 : prev + 1;
+    });
+  }, [filteredImages.length]);
+
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSelectedIndex(null);
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goToPrev();
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goToNext();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedIndex, goToPrev, goToNext]);
+
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [activeCategory]);
 
   return (
-    <section id="gallery" className="py-20 md:py-32 bg-card">
+    <section id="gallery" className="bg-card py-20 md:py-32">
       <div className="container" ref={ref}>
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-10 text-center"
         >
-          <span className="font-accent text-sm text-accent tracking-widest">
-            GALLERIA FOTOGRAFICA
-          </span>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mt-2">
-            Le Nostre Creazioni
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
-            Scopri la bellezza e l'eleganza di ogni nostro capolavoro dolciario.
+          <span className="font-accent text-sm tracking-widest text-accent">GALLERIA FOTOGRAFICA</span>
+          <h2 className="mt-2 font-display text-4xl font-bold text-foreground md:text-5xl">Le Nostre Creazioni</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+            Filtra per categoria e apri il lightbox per sfogliare la galleria come un vero carousel.
           </p>
         </motion.div>
 
-        {/* Gallery Grid */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={inView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-10 flex flex-wrap justify-center gap-3"
         >
-          {galleryImages.map((image) => (
-            <motion.div
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`rounded-full px-5 py-2 font-accent text-xs transition-all ${
+                activeCategory === category
+                  ? 'bg-accent text-accent-foreground shadow-md'
+                  : 'border border-accent/40 text-accent hover:bg-accent/10'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        >
+          {filteredImages.map((image, index) => (
+            <motion.button
               key={image.id}
-              variants={itemVariants}
-              className="relative group cursor-pointer overflow-hidden rounded-lg shadow-lg h-80"
-              onClick={() => setSelectedImage(image.id)}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ y: -4, scale: 1.01 }}
+              onClick={() => setSelectedIndex(index)}
+              className="group relative h-80 overflow-hidden rounded-2xl border border-border shadow-lg"
             >
               <img
                 src={image.src}
                 alt={image.alt}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-accent/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                <div>
-                  <h3 className="font-display text-xl font-bold text-white">
-                    {image.title}
-                  </h3>
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute bottom-5 left-5 text-left text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <p className="font-accent text-xs tracking-wide text-white/85">{image.category}</p>
+                <h3 className="font-display text-xl">{image.title}</h3>
               </div>
-            </motion.div>
+            </motion.button>
           ))}
         </motion.div>
 
-        {/* Lightbox Modal */}
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          >
+        <AnimatePresence>
+          {selectedIndex !== null && (
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="relative max-w-4xl w-full"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/85 p-4 backdrop-blur-sm"
+              role="dialog"
+              aria-modal="true"
             >
-              <img
-                src={galleryImages.find((img) => img.id === selectedImage)?.src}
-                alt="Gallery"
-                className="w-full h-auto rounded-lg"
-              />
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition-colors"
-              >
-                ✕
-              </button>
+              <div className="mx-auto flex h-full max-w-6xl items-center justify-center">
+                <button
+                  aria-label="Chiudi galleria"
+                  onClick={() => setSelectedIndex(null)}
+                  className="absolute right-6 top-6 rounded-full bg-white/15 p-2 text-white hover:bg-white/30"
+                >
+                  <X size={20} />
+                </button>
+
+                <button
+                  aria-label="Immagine precedente"
+                  onClick={goToPrev}
+                  className="absolute left-4 rounded-full bg-white/15 p-3 text-white hover:bg-white/30 md:left-8"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+
+                <motion.figure
+                  key={filteredImages[selectedIndex].id}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-white/20"
+                  aria-label={`Immagine ${selectedIndex + 1} di ${filteredImages.length}`}
+                >
+                  <img
+                    src={filteredImages[selectedIndex].src}
+                    alt={filteredImages[selectedIndex].alt}
+                    className="max-h-[75vh] w-full object-cover"
+                  />
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
+                    <p className="font-accent text-xs tracking-wide text-white/80">
+                      {filteredImages[selectedIndex].category}
+                    </p>
+                    <h3 className="font-display text-2xl">{filteredImages[selectedIndex].title}</h3>
+                  </figcaption>
+                </motion.figure>
+
+                <button
+                  aria-label="Immagine successiva"
+                  onClick={goToNext}
+                  className="absolute right-4 rounded-full bg-white/15 p-3 text-white hover:bg-white/30 md:right-8"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
             </motion.div>
-          </motion.div>
-        )}
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
